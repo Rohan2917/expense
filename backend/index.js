@@ -20,6 +20,9 @@ app.use(cors({
 }))
 
 app.use(express.json())
+app.get('/', (req, res) => {
+  res.send('🎉 ExpenseX Backend is running');
+});
 app.use('/api/auth', authRouter)
 app.use('/api/expenses', expenseRouter)
 
