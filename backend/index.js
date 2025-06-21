@@ -7,7 +7,7 @@ import authRouter from './routes/auth.js'
 import expenseRouter from './routes/expenses.js'
 
 const app = express()
-const allowedOrigins = ['https://expensex-q6f2.onrender.com', 'http://localhost:3000']
+const allowedOrigins = ['https://expensex-q6f2.onrender.com', 'http://localhost:3000','https://expense-cyan.vercel.app']
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
