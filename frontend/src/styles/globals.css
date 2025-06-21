@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+main {
+  padding-top: 78px;
+}
+@media (min-width: 768px) {
+  main {
+    padding-top: 78px;
+  }
+}
+@media (min-width: 1600px) {
+  body {
+    max-width: 1400px;
+  }
+}
