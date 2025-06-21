@@ -12,6 +12,20 @@ app.use(express.json())
 app.use('/api/auth', authRouter)
 app.use('/api/expenses', expenseRouter)
 
-mongoose.connect(process.env.MONGODB_URI).then(() => {
-  app.listen(process.env.PORT || 4000)
+const PORT = process.env.PORT || 4000
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  ssl: true, // ensure TLS
+  serverSelectionTimeoutMS: 10000, // fail fast if cannot connect
+})
+.then(() => {
+  console.log('✅ MongoDB connected successfully')
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+  })
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err.message)
 })
