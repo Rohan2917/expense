@@ -7,7 +7,18 @@ import authRouter from './routes/auth.js'
 import expenseRouter from './routes/expenses.js'
 
 const app = express()
-app.use(cors())
+const allowedOrigins = ['https://expensex-q6f2.onrender.com', 'http://localhost:3000']
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true
+}))
+
 app.use(express.json())
 app.use('/api/auth', authRouter)
 app.use('/api/expenses', expenseRouter)
