@@ -26,3 +26,45 @@ main {
     max-width: 1400px;
   }
 }
+.css-2210ol-MuiDataGrid-root .MuiDataGrid-columnHeaderTitleContainer {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #392941;
+  font-weight: 900;
+}
+
+.css-bmx5ne-MuiDataGrid-root .MuiDataGrid-columnHeaderTitleContainerContent {
+  overflow: hidden;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #984343;
+  /* font-size: 15px; */
+  font-weight: 1000;
+}
+
+.css-gsh5t1-MuiDataGrid-root .MuiDataGrid-columnHeader--alignCenter .MuiDataGrid-columnHeaderTitleContainer {
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  color: rebeccapurple;
+}

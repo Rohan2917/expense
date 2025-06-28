@@ -22,8 +22,7 @@ module.exports = {
   transpilePackages: ['@mui/x-data-grid'],
   webpack: config => {
     config.module.rules.push({
-      test: /\.css$/,
-      include: /node_modules\/@mui\/x-data-grid/,
+      test: /\.css$/i,
       use: ['style-loader', 'css-loader']
     })
     return config

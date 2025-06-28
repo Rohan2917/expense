@@ -1,50 +1,52 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { setAuth } from '../store/authSlice'
-import { Container, Card, CardContent, TextField, Button, Typography, Box, Link as MuiLink } from '@mui/material'
-import api from '../utils/api'
-import Link from 'next/link'
+import { setAuthentication } from '../store/slices/authSlice'
+import { Container, Card, CardContent, TextField, Button, Typography, Box } from '@mui/material'
+import { createApiInstance } from '../utils/api'
 import { useRouter } from 'next/router'
+import { useSnackbar } from 'notistack'
+import Loader from '../components/Loader'
+
 export default function Login() {
-  const [u, setU] = useState('')
-  const [p, setP] = useState('')
-  const [err, setErr] = useState('')
-  const d = useDispatch()
-  const r = useRouter()
-  const go = async e => {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+  const router = useRouter()
+  const { enqueueSnackbar } = useSnackbar()
+
+  const handleLogin = async e => {
     e.preventDefault()
+    setLoading(true)
     try {
-      const { data } = await api().post('/auth/login', { username: u, password: p })
-      d(setAuth(data))
-      r.push('/expenses')
+      const { data } = await createApiInstance().post('/auth/login', { username, password })
+      dispatch(setAuthentication(data))
+      enqueueSnackbar('Login successful', { variant: 'success' })
+      router.push(data.user.role === 'admin' ? '/admin' : '/expenses')
     } catch {
-      setErr('Invalid credentials')
+      enqueueSnackbar('Invalid credentials', { variant: 'error' })
     }
+    setLoading(false)
   }
+
   return (
-    <Container maxWidth='sm' sx={{ mt: 10 }}>
-      <Card>
+    <Container maxWidth='sm'>
+      <Loader open={loading} />
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography variant='h3' sx={{ background: 'linear-gradient(45deg, #1976d2, #4caf50)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 'bold', mb: 1 }}>
+          Expense Tracker
+        </Typography>
+        <Typography variant='h5'>Login to Your Account</Typography>
+      </Box>
+      <Card elevation={3}>
         <CardContent>
-          <Typography variant='h4' align='center'>
-            Login
-          </Typography>
-          <Box component='form' onSubmit={go} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField label='Username' value={u} onChange={e => setU(e.target.value)} required />
-            <TextField label='Password' type='password' value={p} onChange={e => setP(e.target.value)} required />
-            {err && <Typography color='error'>{err}</Typography>}
-            <Button variant='contained' type='submit'>
-              Enter
+          <Box component='form' onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField label='Username' value={username} onChange={e => setUsername(e.target.value)} required fullWidth />
+            <TextField label='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
+            <Button type='submit' variant='contained' size='large' fullWidth>
+              Login
             </Button>
-            <Link href='/forgot-password' passHref legacyBehavior>
-              <MuiLink underline='none' sx={{ alignSelf: 'center' }}>
-                Forgot Password?
-              </MuiLink>
-            </Link>
-            <Link href='/signup' passHref legacyBehavior>
-              <MuiLink underline='none' sx={{ alignSelf: 'center' }}>
-                Create Account
-              </MuiLink>
-            </Link>
+            <Button onClick={() => router.push('/signup')}>Create Account</Button>
           </Box>
         </CardContent>
       </Card>

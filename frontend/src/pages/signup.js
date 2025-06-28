@@ -1,37 +1,37 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { setAuth } from '../store/authSlice'
+import { setAuthentication } from '../store/slices/authSlice'
 import { Container, Card, CardContent, TextField, Button, Typography, Box } from '@mui/material'
-import api from '../utils/api'
+import { createApiInstance } from '../utils/api'
 import { useRouter } from 'next/router'
+import { useSnackbar } from 'notistack'
+import Loader from '../components/Loader'
 
 export default function Signup() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-
+  const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const router = useRouter()
+  const { enqueueSnackbar } = useSnackbar()
 
   const handleSignup = async e => {
     e.preventDefault()
-    setError('') // Clear previous error
-
+    setLoading(true)
     try {
-      const { data } = await api().post('/auth/signup', {
-        username,
-        password
-      })
-
-      dispatch(setAuth(data))
+      const { data } = await createApiInstance().post('/auth/register', { username, password })
+      dispatch(setAuthentication(data))
+      enqueueSnackbar('Account created', { variant: 'success' })
       router.push('/expenses')
-    } catch (err) {
-      setError('User already exists')
+    } catch {
+      enqueueSnackbar('User already exists', { variant: 'error' })
     }
+    setLoading(false)
   }
 
   return (
     <Container maxWidth='sm' sx={{ mt: 10 }}>
+      <Loader open={loading} />
       <Card>
         <CardContent>
           <Typography variant='h4' align='center'>
@@ -40,7 +40,6 @@ export default function Signup() {
           <Box component='form' onSubmit={handleSignup} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField label='Username' value={username} onChange={e => setUsername(e.target.value)} required />
             <TextField label='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} required />
-            {error && <Typography color='error'>{error}</Typography>}
             <Button variant='contained' type='submit'>
               Create
             </Button>

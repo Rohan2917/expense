@@ -1,0 +1,11 @@
+import RestaurantIcon from '@mui/icons-material/Restaurant'
+import FlightIcon from '@mui/icons-material/Flight'
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
+
+export const categories = {
+  Food: RestaurantIcon,
+  Travel: FlightIcon,
+  Shopping: ShoppingCartIcon,
+  Other: AttachMoneyIcon
+}
