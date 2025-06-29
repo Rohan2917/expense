@@ -7,39 +7,39 @@ import { useRouter } from 'next/router'
 import { useSnackbar } from 'notistack'
 import Loader from '../components/Loader'
 
-export default function Signup() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const dispatch = useDispatch()
-  const router = useRouter()
+export default () => {
+  const [u, setU] = useState('')
+  const [p, setP] = useState('')
+  const [l, setL] = useState(false)
+  const d = useDispatch()
+  const r = useRouter()
   const { enqueueSnackbar } = useSnackbar()
 
-  const handleSignup = async e => {
+  const go = async e => {
     e.preventDefault()
-    setLoading(true)
+    setL(true)
     try {
-      const { data } = await createApiInstance().post('/auth/register', { username, password })
-      dispatch(setAuthentication(data))
+      const { data } = await createApiInstance().post('/auth/register', { username: u, password: p })
+      d(setAuthentication(data))
       enqueueSnackbar('Account created', { variant: 'success' })
-      router.push('/expenses')
+      r.push('/expenses')
     } catch {
-      enqueueSnackbar('User already exists', { variant: 'error' })
+      enqueueSnackbar('User exists', { variant: 'error' })
     }
-    setLoading(false)
+    setL(false)
   }
 
   return (
     <Container maxWidth='sm' sx={{ mt: 10 }}>
-      <Loader open={loading} />
+      <Loader open={l} />
       <Card>
         <CardContent>
           <Typography variant='h4' align='center'>
             Sign Up
           </Typography>
-          <Box component='form' onSubmit={handleSignup} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField label='Username' value={username} onChange={e => setUsername(e.target.value)} required />
-            <TextField label='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} required />
+          <Box component='form' onSubmit={go} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField label='Username' value={u} onChange={e => setU(e.target.value)} required />
+            <TextField label='Password' type='password' value={p} onChange={e => setP(e.target.value)} required />
             <Button variant='contained' type='submit'>
               Create
             </Button>

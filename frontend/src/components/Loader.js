@@ -1,8 +1,6 @@
 import { Backdrop, CircularProgress } from '@mui/material'
-
-const Loader = ({ open }) => (
+export default ({ open }) => (
   <Backdrop open={open} sx={{ zIndex: 1400 }}>
     <CircularProgress />
   </Backdrop>
 )
-export default Loader

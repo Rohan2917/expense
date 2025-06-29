@@ -1,13 +1,12 @@
 import { useRouter } from 'next/router'
 import { useSelector } from 'react-redux'
 import { useEffect } from 'react'
-
-export default function Home() {
-  const router = useRouter()
+export default () => {
   const { token, role } = useSelector(s => s.auth)
+  const r = useRouter()
   useEffect(() => {
-    if (token) router.replace(role === 'admin' ? '/admin' : '/expenses')
-    else router.replace('/login')
+    if (token) r.replace(role === 'admin' ? '/admin' : '/expenses')
+    else r.replace('/login')
   }, [token, role])
   return null
 }

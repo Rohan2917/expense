@@ -7,46 +7,46 @@ import { useRouter } from 'next/router'
 import { useSnackbar } from 'notistack'
 import Loader from '../components/Loader'
 
-export default function Login() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const dispatch = useDispatch()
-  const router = useRouter()
+export default () => {
+  const [u, setU] = useState('')
+  const [p, setP] = useState('')
+  const [l, setL] = useState(false)
+  const d = useDispatch()
+  const r = useRouter()
   const { enqueueSnackbar } = useSnackbar()
 
-  const handleLogin = async e => {
+  const go = async e => {
     e.preventDefault()
-    setLoading(true)
+    setL(true)
     try {
-      const { data } = await createApiInstance().post('/auth/login', { username, password })
-      dispatch(setAuthentication(data))
+      const { data } = await createApiInstance().post('/auth/login', { username: u, password: p })
+      d(setAuthentication(data))
       enqueueSnackbar('Login successful', { variant: 'success' })
-      router.push(data.user.role === 'admin' ? '/admin' : '/expenses')
+      r.push(data.user.role === 'admin' ? '/admin' : '/expenses')
     } catch {
       enqueueSnackbar('Invalid credentials', { variant: 'error' })
     }
-    setLoading(false)
+    setL(false)
   }
 
   return (
     <Container maxWidth='sm'>
-      <Loader open={loading} />
+      <Loader open={l} />
       <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Typography variant='h3' sx={{ background: 'linear-gradient(45deg, #1976d2, #4caf50)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 'bold', mb: 1 }}>
+        <Typography variant='h3' sx={{ background: 'linear-gradient(45deg,#1976d2,#4caf50)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 700 }}>
           Expense Tracker
         </Typography>
-        <Typography variant='h5'>Login to Your Account</Typography>
+        <Typography variant='h5'>Login</Typography>
       </Box>
       <Card elevation={3}>
         <CardContent>
-          <Box component='form' onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField label='Username' value={username} onChange={e => setUsername(e.target.value)} required fullWidth />
-            <TextField label='Password' type='password' value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
+          <Box component='form' onSubmit={go} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField label='Username' value={u} onChange={e => setU(e.target.value)} required fullWidth />
+            <TextField label='Password' type='password' value={p} onChange={e => setP(e.target.value)} required fullWidth />
             <Button type='submit' variant='contained' size='large' fullWidth>
               Login
             </Button>
-            <Button onClick={() => router.push('/signup')}>Create Account</Button>
+            <Button onClick={() => r.push('/signup')}>Sign Up</Button>
           </Box>
         </CardContent>
       </Card>

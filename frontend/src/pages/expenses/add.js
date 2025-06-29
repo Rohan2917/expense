@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { createNewExpense } from '../../store/slices/expenseSlice'
+import { useSelector } from 'react-redux'
+import { createApiInstance } from '../../utils/api'
 import { Container, TextField, Button, Typography, Box, MenuItem, Select } from '@mui/material'
 import Layout from '../../components/Layout'
 import { useRouter } from 'next/router'
@@ -8,50 +8,45 @@ import { categories } from '../../utils/constants'
 import { useSnackbar } from 'notistack'
 import Loader from '../../components/Loader'
 
-export default function AddExpensePage() {
-  const dispatch = useDispatch()
-  const router = useRouter()
+export default () => {
+  const { token } = useSelector(s => s.auth)
   const { enqueueSnackbar } = useSnackbar()
-  const [title, setTitle] = useState('')
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
-  const [datetime, setDatetime] = useState('')
-  const [category, setCategory] = useState('Other')
-  const [loading, setLoading] = useState(false)
+  const r = useRouter()
+  const [l, setL] = useState(false)
+  const [f, setF] = useState({ title: '', amount: '', description: '', datetime: '', category: 'Other' })
 
-  const handleSubmit = async e => {
+  const save = async e => {
     e.preventDefault()
-    if (!title || !amount) return
-    setLoading(true)
-    await dispatch(createNewExpense({ title, amount: Number(amount), description, timestamp: datetime || new Date().toISOString(), category })).unwrap()
+    setL(true)
+    await createApiInstance(token).post('/expenses', { title: f.title, amount: Number(f.amount), description: f.description, category: f.category, timestamp: f.datetime || new Date().toISOString() })
     enqueueSnackbar('Expense added', { variant: 'success' })
-    setLoading(false)
-    router.push('/expenses')
+    setL(false)
+    r.push('/expenses')
   }
 
   return (
     <Layout>
-      <Loader open={loading} />
+      <Loader open={l} />
       <Container maxWidth='sm'>
         <Typography variant='h4' align='center' sx={{ mb: 3 }}>
-          Add New Expense
+          Add Expense
         </Typography>
-        <Box component='form' onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField label='Title' value={title} onChange={e => setTitle(e.target.value)} required fullWidth />
-          <TextField label='Amount' type='number' value={amount} onChange={e => setAmount(e.target.value)} required fullWidth />
-          <Select value={category} onChange={e => setCategory(e.target.value)} fullWidth>
+        <Box component='form' onSubmit={save} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField label='Title' value={f.title} onChange={e => setF({ ...f, title: e.target.value })} required fullWidth />
+          <TextField label='Amount' type='number' value={f.amount} onChange={e => setF({ ...f, amount: e.target.value })} required fullWidth />
+          <Select value={f.category} onChange={e => setF({ ...f, category: e.target.value })} fullWidth>
             {Object.keys(categories).map(c => (
               <MenuItem key={c} value={c}>
                 {c}
               </MenuItem>
             ))}
           </Select>
-          <TextField label='Description' value={description} onChange={e => setDescription(e.target.value)} multiline rows={3} fullWidth />
-          <TextField label='Date & Time' type='datetime-local' value={datetime} onChange={e => setDatetime(e.target.value)} InputLabelProps={{ shrink: true }} fullWidth />
+          <TextField label='Description' value={f.description} onChange={e => setF({ ...f, description: e.target.value })} multiline rows={3} fullWidth />
+          <TextField label='Date & Time' type='datetime-local' value={f.datetime} onChange={e => setF({ ...f, datetime: e.target.value })} fullWidth InputLabelProps={{ shrink: true }} />
           <Button type='submit' variant='contained' size='large' fullWidth>
-            Save Expense
+            Save
           </Button>
-          <Button variant='outlined' onClick={() => router.push('/expenses')} fullWidth>
+          <Button variant='outlined' onClick={() => r.push('/expenses')} fullWidth>
             Cancel
           </Button>
         </Box>

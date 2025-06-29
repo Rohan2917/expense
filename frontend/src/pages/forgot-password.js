@@ -5,37 +5,37 @@ import { useRouter } from 'next/router'
 import { useSnackbar } from 'notistack'
 import Loader from '../components/Loader'
 
-export default function ForgotPassword() {
-  const [username, setUsername] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+export default () => {
+  const [u, setU] = useState('')
+  const [p, setP] = useState('')
+  const [l, setL] = useState(false)
+  const r = useRouter()
   const { enqueueSnackbar } = useSnackbar()
 
-  const handleReset = async e => {
+  const go = async e => {
     e.preventDefault()
-    setLoading(true)
+    setL(true)
     try {
-      await createApiInstance().post('/auth/reset-password', { username, newPassword })
+      await createApiInstance().post('/auth/reset-password', { username: u, newPassword: p })
       enqueueSnackbar('Password reset', { variant: 'success' })
-      setTimeout(() => router.push('/login'), 1500)
+      setTimeout(() => r.push('/login'), 1500)
     } catch {
       enqueueSnackbar('User not found', { variant: 'error' })
     }
-    setLoading(false)
+    setL(false)
   }
 
   return (
     <Container maxWidth='sm' sx={{ mt: 10 }}>
-      <Loader open={loading} />
+      <Loader open={l} />
       <Card>
         <CardContent>
           <Typography variant='h4' align='center'>
             Reset Password
           </Typography>
-          <Box component='form' onSubmit={handleReset} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField label='Username' value={username} onChange={e => setUsername(e.target.value)} required />
-            <TextField label='New Password' type='password' value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
+          <Box component='form' onSubmit={go} sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField label='Username' value={u} onChange={e => setU(e.target.value)} required />
+            <TextField label='New Password' type='password' value={p} onChange={e => setP(e.target.value)} required />
             <Button variant='contained' type='submit'>
               Reset
             </Button>

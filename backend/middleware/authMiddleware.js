@@ -1,14 +1,7 @@
 import jwt from 'jsonwebtoken'
-
-const authMiddleware = (req, res, next) => {
+export default (req, _res, next) => {
   const token = (req.headers.authorization || '').split(' ')[1]
-  if (!token) return res.sendStatus(401)
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET)
-    next()
-  } catch {
-    res.sendStatus(401)
-  }
+  if (!token) return next(new Error('unauth'))
+  req.user = jwt.verify(token, process.env.JWT_SECRET)
+  next()
 }
-
-export default authMiddleware

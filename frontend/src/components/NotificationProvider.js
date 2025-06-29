@@ -1,8 +1,6 @@
 import { SnackbarProvider } from 'notistack'
-
-const NotificationProvider = ({ children }) => (
-  <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }} autoHideDuration={1000}>
+export default ({ children }) => (
+  <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }} autoHideDuration={1200}>
     {children}
   </SnackbarProvider>
 )
-export default NotificationProvider

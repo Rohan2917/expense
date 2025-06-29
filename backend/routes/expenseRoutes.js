@@ -1,21 +1,12 @@
 import express from 'express'
-import authMiddleware from '../middleware/authMiddleware.js'
-import {
-  getExpenses,
-  getExpensesAdmin,
-  createExpense,
-  updateExpense,
-  deleteExpense,
-  deleteMonthlyExpenses
-} from '../controllers/expenseController.js'
-
-const router = express.Router()
-router.use(authMiddleware)
-router.get('/admin', getExpensesAdmin)
-router.get('/', getExpenses)
-router.post('/', createExpense)
-router.put('/:id', updateExpense)
-router.delete('/delete-month', deleteMonthlyExpenses)
-router.delete('/:id', deleteExpense)
-
-export default router
+import auth from '../middleware/authMiddleware.js'
+import { getExpenses, getExpensesAdmin, createExpense, updateExpense, deleteExpense, deleteMonth} from '../controllers/expenseController.js'
+const r = express.Router()
+r.use(auth)
+r.get('/admin', getExpensesAdmin)
+r.delete('/delete-month', deleteMonth)
+r.get('/', getExpenses)
+r.post('/', createExpense)
+r.put('/:id', updateExpense)
+r.delete('/:id', deleteExpense)
+export default r

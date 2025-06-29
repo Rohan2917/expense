@@ -4,8 +4,7 @@ import { generateToken } from '../utils/generateToken.js'
 
 export const registerUser = async (req, res) => {
   const { username, password } = req.body
-  const hashed = await bcrypt.hash(password, 10)
-  const user = await User.create({ username, password: hashed })
+  const user = await User.create({ username, password: await bcrypt.hash(password, 10) })
   const token = generateToken(user._id)
   res.json({ token, user: { id: user._id, username: user.username, role: user.role } })
 }
@@ -14,8 +13,7 @@ export const loginUser = async (req, res) => {
   const { username, password } = req.body
   const user = await User.findOne({ username })
   if (!user) return res.status(401).json({ error: 'User not found' })
-  const valid = await bcrypt.compare(password, user.password)
-  if (!valid) return res.status(401).json({ error: 'Invalid password' })
+  if (!(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Invalid password' })
   const token = generateToken(user._id)
   res.json({ token, user: { id: user._id, username: user.username, role: user.role } })
 }
