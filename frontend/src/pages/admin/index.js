@@ -150,7 +150,7 @@ export default () => {
           </Button>
         </Box>
 
-        <Card sx={{ mb: 2 }}>
+        {/* <Card sx={{ mb: 2 }}>
           <CardContent>
             <Typography align='center'>Day Total: ₹{dayTotal.toLocaleString('en-IN')}</Typography>
           </CardContent>
@@ -159,7 +159,7 @@ export default () => {
           <CardContent>
             <Typography align='center'>Month Total: ₹{monthTotal.toLocaleString('en-IN')}</Typography>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Box sx={{ height: 400, width: '100%' }}>
           <DataGrid rows={gridRows} columns={cols} disableRowSelectionOnClick slots={{ toolbar: GridToolbar }} />
