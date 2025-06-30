@@ -7,46 +7,52 @@ import { useRouter } from 'next/router'
 import { categories } from '../../utils/constants'
 import { useSnackbar } from 'notistack'
 import Loader from '../../components/Loader'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+dayjs.extend(utc)
+dayjs.extend(timezone)
+const TZ = 'Asia/Kolkata'
 
-export default () => {
+export default function AddExpense() {
   const { token } = useSelector(s => s.auth)
   const { enqueueSnackbar } = useSnackbar()
-  const r = useRouter()
-  const [l, setL] = useState(false)
-  const [f, setF] = useState({ title: '', amount: '', description: '', datetime: '', category: 'Other' })
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({ title: '', amount: '', description: '', datetime: '', category: 'Other' })
 
   const save = async e => {
     e.preventDefault()
-    setL(true)
-    await createApiInstance(token).post('/expenses', { title: f.title, amount: Number(f.amount), description: f.description, category: f.category, timestamp: f.datetime || new Date().toISOString() })
+    setLoading(true)
+    await createApiInstance(token).post('/expenses', { title: form.title, amount: Number(form.amount), description: form.description, category: form.category, timestamp: form.datetime || dayjs().tz(TZ).format() })
     enqueueSnackbar('Expense added', { variant: 'success' })
-    setL(false)
-    r.push('/expenses')
+    setLoading(false)
+    router.push('/expenses')
   }
 
   return (
     <Layout>
-      <Loader open={l} />
+      <Loader open={loading} />
       <Container maxWidth='sm'>
         <Typography variant='h4' align='center' sx={{ mb: 3 }}>
           Add Expense
         </Typography>
         <Box component='form' onSubmit={save} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField label='Title' value={f.title} onChange={e => setF({ ...f, title: e.target.value })} required fullWidth />
-          <TextField label='Amount' type='number' value={f.amount} onChange={e => setF({ ...f, amount: e.target.value })} required fullWidth />
-          <Select value={f.category} onChange={e => setF({ ...f, category: e.target.value })} fullWidth>
+          <TextField label='Title' value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required fullWidth />
+          <TextField label='Amount' type='number' value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required fullWidth />
+          <Select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} fullWidth>
             {Object.keys(categories).map(c => (
               <MenuItem key={c} value={c}>
                 {c}
               </MenuItem>
             ))}
           </Select>
-          <TextField label='Description' value={f.description} onChange={e => setF({ ...f, description: e.target.value })} multiline rows={3} fullWidth />
-          <TextField label='Date & Time' type='datetime-local' value={f.datetime} onChange={e => setF({ ...f, datetime: e.target.value })} fullWidth InputLabelProps={{ shrink: true }} />
+          <TextField label='Description' value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} multiline rows={3} fullWidth />
+          <TextField label='Date & Time' type='datetime-local' value={form.datetime ? dayjs(form.datetime).tz(TZ).format('YYYY-MM-DDTHH:mm') : ''} onChange={e => setForm({ ...form, datetime: dayjs.tz(e.target.value, TZ).format() })} fullWidth InputLabelProps={{ shrink: true }} />
           <Button type='submit' variant='contained' size='large' fullWidth>
             Save
           </Button>
-          <Button variant='outlined' onClick={() => r.push('/expenses')} fullWidth>
+          <Button variant='outlined' onClick={() => router.push('/expenses')} fullWidth>
             Cancel
           </Button>
         </Box>

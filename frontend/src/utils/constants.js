@@ -1,13 +1,13 @@
 import RestaurantIcon from '@mui/icons-material/Restaurant'
-import FlightIcon from '@mui/icons-material/DirectionsBus'
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
+import CategoryIcon from '@mui/icons-material/CurrencyRupee'
 
 export const categories = {
   Food: RestaurantIcon,
-  Travel: FlightIcon,
+  Travel: DirectionsBusIcon,
   Shopping: ShoppingCartIcon,
   Investment: TrendingUpIcon,
-  Other: AttachMoneyIcon
+  Other: CategoryIcon // <-- updated
 }

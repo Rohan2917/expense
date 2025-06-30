@@ -7,44 +7,49 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import { useRouter } from 'next/router'
 import Layout from '../../components/Layout'
 import { Add } from '@mui/icons-material'
 import ExpenseCard from '../../components/ExpenseCard'
 import Loader from '../../components/Loader'
 import { categories } from '../../utils/constants'
-dayjs.extend(utc)
 
-export default () => {
+dayjs.extend(utc)
+dayjs.extend(timezone)
+const TZ = 'Asia/Kolkata'
+
+export default function ExpensePage() {
   const { token } = useSelector(s => s.auth)
   const { items } = useSelector(s => s.expenses)
-  const f = useSelector(s => s.filters.expense)
-  const d = useDispatch()
-  const r = useRouter()
-  const [loadState, setLoadState] = useState(false)
+  const filter = useSelector(s => s.filters.expense)
+  const dispatch = useDispatch()
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   const load = () => {
-    setLoadState(true)
-    d(retrieveExpenses())
+    setLoading(true)
+    dispatch(retrieveExpenses())
       .unwrap()
-      .finally(() => setLoadState(false))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => {
-    token ? load() : r.replace('/login')
-  }, [token, f])
+    token ? load() : router.replace('/login')
+  }, [token, filter])
 
   const total = items.reduce((s, x) => s + x.amount, 0)
+  const iso = (v, end = false) => dayjs.tz(v, TZ)[end ? 'endOf' : 'startOf']('day').toISOString()
 
   return (
     <Layout>
-      <Loader open={loadState} />
+      <Loader open={loading} />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Container maxWidth='md'>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-            <DatePicker label='From' value={dayjs(f.from)} onChange={v => v && v.isValid() && d(setExpenseFilter({ from: v.utc().startOf('day').toISOString() }))} slotProps={{ textField: { size: 'small' } }} />
-            <DatePicker label='To' value={dayjs(f.to)} onChange={v => v && v.isValid() && d(setExpenseFilter({ to: v.utc().endOf('day').toISOString() }))} slotProps={{ textField: { size: 'small' } }} />
-            <Select size='small' value={f.category} onChange={e => d(setExpenseFilter({ category: e.target.value }))}>
+            <DatePicker label='From' value={filter.from ? dayjs(filter.from) : null} onChange={v => v && dispatch(setExpenseFilter({ from: iso(v) }))} slotProps={{ textField: { size: 'small' } }} />
+            <DatePicker label='To' value={filter.to ? dayjs(filter.to) : null} onChange={v => v && dispatch(setExpenseFilter({ to: iso(v, true) }))} slotProps={{ textField: { size: 'small' } }} />
+            <Select size='small' value={filter.category} onChange={e => dispatch(setExpenseFilter({ category: e.target.value }))}>
               <MenuItem value='All'>All</MenuItem>
               {Object.keys(categories).map(c => (
                 <MenuItem key={c} value={c}>
@@ -52,13 +57,13 @@ export default () => {
                 </MenuItem>
               ))}
             </Select>
-            <Button sx={{ ml: 'auto' }} variant='contained' startIcon={<Add />} onClick={() => r.push('/expenses/add')}>
+            <Button sx={{ ml: 'auto' }} variant='contained' startIcon={<Add />} onClick={() => router.push('/expenses/add')}>
               Add
             </Button>
           </Box>
           <Card sx={{ mb: 3 }}>
             <CardContent>
-              <Typography align='center'>Total: ₹{total.toLocaleString('en-IN')}</Typography>
+              <Typography align='center'>Total ₹{total.toLocaleString('en-IN')}</Typography>
             </CardContent>
           </Card>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

@@ -1,20 +1,27 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { setAdminFilter } from '../../store/slices/filterSlice'
-import { Box, Select, MenuItem, Typography, Container, Card, CardContent, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
+import { Box, Select, MenuItem, Container, Card, CardContent, Typography, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
 import { DataGrid, GridToolbar } from '@mui/x-data-grid'
-import Layout from '../../components/Layout'
 import { createApiInstance } from '../../utils/api'
-import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
+import Layout from '../../components/Layout'
 import Loader from '../../components/Loader'
-import { categories } from '../../utils/constants'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { categories } from '../../utils/constants'
 
-export default () => {
+dayjs.extend(utc)
+dayjs.extend(timezone)
+const TZ = 'Asia/Kolkata'
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+export default function AdminExpensePage() {
   const { token } = useSelector(s => s.auth)
-  const f = useSelector(s => s.filters.admin)
+  const filter = useSelector(s => s.filters.admin)
   const dispatch = useDispatch()
   const router = useRouter()
   const [rows, setRows] = useState([])
@@ -23,59 +30,61 @@ export default () => {
   const [loading, setLoading] = useState(false)
   const [dlg, setDlg] = useState({ open: false, item: null })
 
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const params = () => {
+    const p = { year: filter.year, month: filter.month }
+    if (filter.day) p.day = filter.day
+    if (filter.category && filter.category !== 'All') p.category = filter.category
+    return p
+  }
 
-  const fetchExpenses = async () => {
+  const fetchData = async () => {
     setLoading(true)
-    try {
-      const res = await createApiInstance(token).get('/expenses/admin', { params: f })
-      setRows(res.data.expenses)
-      setDayTotal(res.data.dayTotal || 0)
-      setMonthTotal(res.data.monthTotal || 0)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setLoading(false)
-    }
+    const res = await createApiInstance(token).get('/expenses/admin', { params: params() })
+    setRows(res.data.expenses)
+    setDayTotal(res.data.dayTotal)
+    setMonthTotal(res.data.monthTotal)
+    setLoading(false)
   }
 
   useEffect(() => {
-    if (token) fetchExpenses()
-    else router.replace('/login')
-  }, [token, f])
+    token ? fetchData() : router.replace('/login')
+  }, [token, filter])
 
   const gridRows = useMemo(
     () =>
-      rows.map(x => ({
-        id: x._id,
-        title: x.title,
-        date: dayjs(x.timestamp).format('DD MMM'),
-        time: dayjs(x.timestamp).format('h:mm A'),
-        amount: `₹${x.amount.toLocaleString('en-IN')}`,
-        category: x.category,
-        src: x
-      })),
+      rows.map(r => {
+        const t = dayjs(r.timestamp).add(5, 'hour').add(30, 'minute')
+        return {
+          id: r._id,
+          title: r.title,
+          date: t.format('DD MMM'),
+          time: t.format('h:mm A'),
+          amount: `₹${r.amount.toLocaleString('en-IN')}`,
+          category: r.category,
+          src: r
+        }
+      }),
     [rows]
   )
 
   const cols = [
-    { field: 'title', headerName: 'Title', flex: 1, minWidth: 120 },
-    { field: 'date', headerName: 'Date', flex: 0.6, minWidth: 100 },
-    { field: 'time', headerName: 'Time', flex: 0.6, minWidth: 100 },
-    { field: 'amount', headerName: 'Amount', flex: 0.8, minWidth: 120 },
-    { field: 'category', headerName: 'Category', flex: 0.8, minWidth: 120 },
+    { field: 'title', flex: 1, headerName: 'Title', minWidth: 120 },
+    { field: 'date', flex: 0.7, headerName: 'Date', minWidth: 100 },
+    { field: 'time', flex: 0.7, headerName: 'Time', minWidth: 100 },
+    { field: 'amount', flex: 0.8, headerName: 'Amount', minWidth: 120 },
+    { field: 'category', flex: 0.8, headerName: 'Category', minWidth: 120 },
     {
       field: 'actions',
-      headerName: 'Actions',
       flex: 0.6,
+      headerName: 'Actions',
       minWidth: 110,
       sortable: false,
-      renderCell: params => (
+      renderCell: p => (
         <>
-          <IconButton color='primary' size='small' onClick={() => setDlg({ open: true, item: { ...params.row.src } })}>
+          <IconButton size='small' color='primary' onClick={() => setDlg({ open: true, item: { ...p.row.src } })}>
             <EditIcon fontSize='small' />
           </IconButton>
-          <IconButton color='error' size='small' onClick={() => erase(params.row.id)}>
+          <IconButton size='small' color='error' onClick={() => erase(p.row.id)}>
             <DeleteIcon fontSize='small' />
           </IconButton>
         </>
@@ -86,29 +95,21 @@ export default () => {
   const erase = async id => {
     setLoading(true)
     await createApiInstance(token).delete(`/expenses/${id}`)
-    await fetchExpenses()
+    await fetchData()
   }
 
   const eraseMonth = async () => {
     setLoading(true)
-    await createApiInstance(token).delete('/expenses/delete-month', {
-      params: { year: f.year, month: f.month }
-    })
-    await fetchExpenses()
+    await createApiInstance(token).delete('/expenses/delete-month', { params: { year: filter.year, month: filter.month } })
+    await fetchData()
   }
 
   const save = async () => {
-    const item = dlg.item
+    const it = dlg.item
     setLoading(true)
-    await createApiInstance(token).put(`/expenses/${item._id}`, {
-      title: item.title,
-      amount: Number(item.amount),
-      description: item.description,
-      category: item.category,
-      timestamp: item.timestamp
-    })
+    await createApiInstance(token).put(`/expenses/${it._id}`, { ...it, amount: Number(it.amount) })
     setDlg({ open: false, item: null })
-    await fetchExpenses()
+    await fetchData()
   }
 
   return (
@@ -116,28 +117,29 @@ export default () => {
       <Loader open={loading} />
       <Container maxWidth='xl'>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-          <Select size='small' value={f.year} onChange={e => dispatch(setAdminFilter({ year: e.target.value }))}>
+          <Select size='small' value={filter.year} onChange={e => dispatch(setAdminFilter({ year: e.target.value }))}>
             {Array.from({ length: 20 }, (_, i) => dayjs().year() - 10 + i).map(y => (
               <MenuItem key={y} value={y}>
                 {y}
               </MenuItem>
             ))}
           </Select>
-          <Select size='small' value={f.month} onChange={e => dispatch(setAdminFilter({ month: e.target.value }))}>
+          <Select size='small' value={filter.month} onChange={e => dispatch(setAdminFilter({ month: e.target.value }))}>
             {months.map((m, i) => (
               <MenuItem key={m} value={i + 1}>
                 {m}
               </MenuItem>
             ))}
           </Select>
-          <Select size='small' value={f.day} onChange={e => dispatch(setAdminFilter({ day: e.target.value }))}>
-            {Array.from({ length: dayjs(`${f.year}-${f.month}-01`).daysInMonth() }, (_, i) => i + 1).map(n => (
-              <MenuItem key={n} value={n}>
-                {n}
+          <Select size='small' value={filter.day} onChange={e => dispatch(setAdminFilter({ day: e.target.value }))}>
+            <MenuItem value=''>All Days</MenuItem>
+            {Array.from({ length: dayjs(`${filter.year}-${filter.month}-01`).daysInMonth() }, (_, i) => i + 1).map(d => (
+              <MenuItem key={d} value={d}>
+                {d}
               </MenuItem>
             ))}
           </Select>
-          <Select size='small' value={f.category} onChange={e => dispatch(setAdminFilter({ category: e.target.value }))}>
+          <Select size='small' value={filter.category} onChange={e => dispatch(setAdminFilter({ category: e.target.value }))}>
             <MenuItem value='All'>All</MenuItem>
             {Object.keys(categories).map(c => (
               <MenuItem key={c} value={c}>
@@ -149,23 +151,22 @@ export default () => {
             Delete Month
           </Button>
         </Box>
-
-        {/* <Card sx={{ mb: 2 }}>
-          <CardContent>
-            <Typography align='center'>Day Total: ₹{dayTotal.toLocaleString('en-IN')}</Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ mb: 3, background: 'primary.main', color: '#fff' }}>
-          <CardContent>
-            <Typography align='center'>Month Total: ₹{monthTotal.toLocaleString('en-IN')}</Typography>
-          </CardContent>
-        </Card> */}
-
+        {/* <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Card sx={{ flex: 1, minWidth: 200 }}>
+            <CardContent>
+              <Typography align='center'>Day Total ₹{dayTotal.toLocaleString('en-IN')}</Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: 1, minWidth: 200 }}>
+            <CardContent>
+              <Typography align='center'>Month Total ₹{monthTotal.toLocaleString('en-IN')}</Typography>
+            </CardContent>
+          </Card>
+        </Box> */}
         <Box sx={{ height: 400, width: '100%' }}>
           <DataGrid rows={gridRows} columns={cols} disableRowSelectionOnClick slots={{ toolbar: GridToolbar }} />
         </Box>
       </Container>
-
       <Dialog open={dlg.open} onClose={() => setDlg({ open: false, item: null })} fullWidth maxWidth='sm'>
         {dlg.item && (
           <>
@@ -181,7 +182,7 @@ export default () => {
                   </MenuItem>
                 ))}
               </Select>
-              <TextField type='datetime-local' value={dayjs(dlg.item.timestamp).format('YYYY-MM-DDTHH:mm')} onChange={e => setDlg(d => ({ ...d, item: { ...d.item, timestamp: new Date(e.target.value).toISOString() } }))} InputLabelProps={{ shrink: true }} />
+              <TextField type='datetime-local' value={dayjs(dlg.item.timestamp).tz(TZ).format('YYYY-MM-DDTHH:mm')} onChange={e => setDlg(d => ({ ...d, item: { ...d.item, timestamp: dayjs.tz(e.target.value, TZ).format() } }))} InputLabelProps={{ shrink: true }} />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDlg({ open: false, item: null })}>Cancel</Button>
